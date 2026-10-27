@@ -30,11 +30,11 @@ content version): 197 ms (A) vs 8 ms (B).
 
 ## Maven custom-handler coverage
 
-`MavenDistribution.content_handler()` uses `RepositoryVersion.get_content()` for
-both generated index-page lookups: the non-trailing-slash redirect probe and the
-trailing-slash inline response. The service image applies patch 0082 to call
-`get_content()` explicitly, making the A/B eligibility visible and protecting it
-from changes to the deprecated `version.content` property.
+`MavenDistribution.content_handler()` uses `RepositoryVersion.content` for both
+generated index-page lookups: the non-trailing-slash redirect probe and the
+trailing-slash inline response. Because `RepositoryVersion.content` delegates to
+`get_content()`, patch 0081 already dispatches these Maven queries through the
+PULP-1996 A/B experiment. No additional Maven source patch is required.
 
 Maven path-index cache hits, Bloom-filtered misses, and ordinary artifact requests
 that fall through to the pulpcore content handler are outside these specific
