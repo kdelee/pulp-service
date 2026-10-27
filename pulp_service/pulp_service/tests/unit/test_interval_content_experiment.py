@@ -129,6 +129,23 @@ def test_get_content_experiment_dispatch(repository, content_pks, add_content, m
     assert all(dispatch.get("correlation_id") for dispatch in dispatches)
 
 
+def test_content_property_uses_experiment(repository, content_pks, add_content, monkeypatch, caplog):
+    """Callers using RepositoryVersion.content, including Maven, receive the A/B dispatch."""
+    with repository.new_version() as version:
+        add_content(version, (1, 0, 1, 0, 1))
+
+    monkeypatch.setattr("pulp_service.app.experiments.random.random", lambda: 0.1)
+    with caplog.at_level("INFO", logger="pulp.experiment"):
+        assert {content.pk for content in version.content} == {
+            content_pks[0],
+            content_pks[2],
+            content_pks[4],
+        }
+
+    dispatch = next(record for record in caplog.records if record.name == "pulp.experiment")
+    assert json.loads(dispatch.getMessage())["variant"] == "B"
+
+
 def test_get_content_marks_sql_per_variant(repository, content_pks, add_content, monkeypatch):  # noqa: ARG001
     """Both variants must reach the database with their RDS Performance Insights marker."""
     with repository.new_version() as version:

@@ -1,0 +1,24 @@
+--- a/pulp_maven/app/models.py
++++ b/pulp_maven/app/models.py
+@@ -425,7 +425,9 @@
+                 return None
+ 
+             has_index = ContentArtifact.objects.filter(
+-                content__in=version.content,
++                # Call get_content() explicitly so the lazy interval-membership
++                # experiment selects A or B for Maven index-page lookups.
++                content__in=version.get_content(),
+                 content__pulp_type="maven.index-page",
+                 relative_path=f"{path}/index.html",
+             ).exists()
+@@ -439,7 +441,9 @@
+         index_rel_path = f"{path}index.html"
+         ca = (
+             ContentArtifact.objects.filter(
+-                content__in=version.content,
++                # Keep this queryset lazy so the same A/B dispatch is attributed
++                # when the caller evaluates the outer ContentArtifact query.
++                content__in=version.get_content(),
+                 content__pulp_type="maven.index-page",
+                 relative_path=index_rel_path,
+             )

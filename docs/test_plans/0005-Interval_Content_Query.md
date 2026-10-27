@@ -28,6 +28,20 @@ with the full version content array instead of the result set. The interval join
 plans against real btree indexes and table statistics. Local repro (PG16, ~10k
 content version): 197 ms (A) vs 8 ms (B).
 
+## Maven custom-handler coverage
+
+`MavenDistribution.content_handler()` uses `RepositoryVersion.get_content()` for
+both generated index-page lookups: the non-trailing-slash redirect probe and the
+trailing-slash inline response. The service image applies patch 0082 to call
+`get_content()` explicitly, making the A/B eligibility visible and protecting it
+from changes to the deprecated `version.content` property.
+
+Maven path-index cache hits, Bloom-filtered misses, and ordinary artifact requests
+that fall through to the pulpcore content handler are outside these specific
+custom-handler calls. The Maven index-page test must exercise both trailing-slash
+forms and verify that variants A and B return the same result and emit the normal
+PULP-1996 dispatch and SQL markers.
+
 ## Measurements
 
 `get_content()` returns a lazily evaluated queryset: constructing it executes no

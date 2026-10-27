@@ -1,1 +1,1 @@
-Add an always-on interval content query experiment for PULP-1996.
+Add an always-on interval content query experiment for PULP-1996, including Maven custom index-page lookups.
